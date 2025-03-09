@@ -1,0 +1,22 @@
+services:
+  ffwatch:
+    build: .
+    environment:
+      TZ: America/Fortaleza
+    volumes:
+      - ./data:/data
+    devices:
+      - /dev/dri:/dev/dri
+    command:
+      [
+        "-c:v",
+        "libx264",
+        "-crf",
+        "20",
+        "-preset",
+        "ultrafast",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "128k",
+      ]

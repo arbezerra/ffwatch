@@ -1,0 +1,15 @@
+[package]
+name = "ffwatch"
+version = "0.1.0"
+description = "Watch a directory for changes and run ffmpeg"
+authors = ["André Landim <arbezerra@gmail.com"]
+edition = "2021"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+homepage = "https://github.com/arbezerra/ffwatch"
+repository = "https://github.com/arbezerra/ffwatch"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+notify = "8.0.0"
