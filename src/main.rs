@@ -7,7 +7,10 @@ use std::{
     thread,
 };
 
-use notify::{event::ModifyKind, Event, Result, Watcher};
+use notify::{
+    event::{AccessKind, AccessMode, ModifyKind, RenameMode},
+    Event, Result, Watcher,
+};
 
 fn get_env(key: &str, default: &str) -> String {
     env::var(key).unwrap_or(default.to_string())
@@ -103,7 +106,8 @@ fn main() {
     for res in watcher_receiver {
         match res {
             Ok(event) => match event.kind {
-                notify::EventKind::Modify(ModifyKind::Data(_)) => {
+                notify::EventKind::Access(AccessKind::Close(AccessMode::Write))
+                | notify::EventKind::Modify(ModifyKind::Name(RenameMode::To)) => {
                     for path in event.paths {
                         if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
                             if allowed_extensions.contains(&ext.to_string()) {
@@ -113,7 +117,9 @@ fn main() {
                         }
                     }
                 }
-                _ => {}
+                _ => {
+                    println!("{:?}", event.kind)
+                }
             },
             Err(e) => {
                 println!("watch error: {:?}", e);
