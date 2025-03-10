@@ -34,8 +34,12 @@ fn process(
         let full_path = receiver.lock().unwrap().recv().unwrap();
         let file_path = full_path.to_str().unwrap();
         let relative_path = file_path.strip_prefix(watch_dir).unwrap_or(&file_path);
-        let transcoding_path = format!("{}/{}", transcoding_dir, relative_path);
-        let output_path = format!("{}/{}", complete_dir, relative_path);
+        let transcoding_path = format!("{}{}", transcoding_dir, relative_path);
+        let output_path = format!("{}{}", complete_dir, relative_path);
+
+        if let Some(transcoding_parent) = Path::new(&transcoding_path).parent() {
+            fs::create_dir_all(transcoding_parent).unwrap();
+        }
 
         let status = Command::new("ffmpeg")
             .arg("-hwaccel")
@@ -50,12 +54,15 @@ fn process(
             .expect("failed to execute process");
 
         if status.success() {
-            println!("Transcoding successful: {}", relative_path);
+            if let Some(output_parent) = Path::new(&output_path).parent() {
+                fs::create_dir_all(output_parent).unwrap();
+            }
             fs::rename(transcoding_path, &output_path).unwrap();
             unix::fs::chown(&Path::new(&output_path), Some(puid), Some(pgid)).unwrap();
+            println!("Transcoding successful: {}", relative_path);
         } else {
-            println!("Transcoding failed: {}", relative_path);
             fs::remove_file(&transcoding_path).ok();
+            println!("Transcoding failed: {}", relative_path);
         }
     }
 }
@@ -117,9 +124,7 @@ fn main() {
                         }
                     }
                 }
-                _ => {
-                    println!("{:?}", event.kind)
-                }
+                _ => {}
             },
             Err(e) => {
                 println!("watch error: {:?}", e);
